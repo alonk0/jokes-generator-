@@ -7,10 +7,9 @@ import styles from "./JokeCard.module.css";
 type Props = {
   status: GenerationStatus;
   joke: string;
-  badge?: string;
 };
 
-export default function JokeCard({ status, joke, badge }: Props) {
+export default function JokeCard({ status, joke }: Props) {
   const isWaiting = status === "streaming" && joke === "";
   const isEmpty = !isWaiting && joke === "";
 
@@ -31,7 +30,12 @@ export default function JokeCard({ status, joke, badge }: Props) {
   }
 
   return (
-    <section className={styles.card} aria-live="polite">
+    <section
+      className={styles.card}
+      // Announce only the final text, not every streamed chunk.
+      aria-live={status === "streaming" ? "off" : "polite"}
+      aria-busy={status === "streaming"}
+    >
       {isWaiting ? (
         <div className={styles.loading}>
           <span className={styles.dots} aria-hidden="true">
@@ -43,7 +47,6 @@ export default function JokeCard({ status, joke, badge }: Props) {
         </div>
       ) : (
         <>
-          {badge && <span className={styles.badge}>{badge}</span>}
           <p className={styles.joke}>{joke}</p>
           {status === "completed" && (
             // Visual only for now; copying is wired in Milestone 3.

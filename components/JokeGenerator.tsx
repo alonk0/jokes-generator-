@@ -2,12 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { GenerationStatus } from "@/lib/generation";
+import { streamJoke } from "@/lib/jokeClient";
 import { STRINGS } from "@/lib/strings";
-import DemoPanel from "./DemoPanel";
 import ErrorMessage from "./ErrorMessage";
 import JokeCard from "./JokeCard";
 import TopicInput from "./TopicInput";
-import { DEMO, type DemoState } from "./demo";
 import { SparkleIcon, StopIcon } from "./icons";
 import styles from "./JokeGenerator.module.css";
 
@@ -22,60 +21,51 @@ const INITIAL_VIEW: View = { status: "idle", joke: "", errorMessage: "" };
 export default function JokeGenerator() {
   const [topic, setTopic] = useState("");
   const [view, setView] = useState<View>(INITIAL_VIEW);
-  const previousView = useRef<View>(INITIAL_VIEW);
-  const demoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const controllerRef = useRef<AbortController | null>(null);
 
   const isStreaming = view.status === "streaming";
 
-  function clearDemoTimer() {
-    if (demoTimer.current) {
-      clearTimeout(demoTimer.current);
-      demoTimer.current = null;
-    }
-  }
+  // Cancel an active request when the component unmounts.
+  useEffect(() => () => controllerRef.current?.abort(), []);
 
-  useEffect(() => clearDemoTimer, []);
-
-  // Demo flow: show the waiting state, then a fixed demo joke. No network call.
-  function startDemo() {
-    clearDemoTimer();
-    previousView.current = view;
+  async function generate() {
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    // The previous joke is cleared only when a new generation starts.
     setView({ status: "streaming", joke: "", errorMessage: "" });
-    demoTimer.current = setTimeout(() => {
-      demoTimer.current = null;
-      setView({ status: "completed", joke: DEMO.joke, errorMessage: "" });
-    }, DEMO.waitMs);
-  }
 
-  function stopDemo() {
-    clearDemoTimer();
-    setView(previousView.current);
-  }
+    let received = false;
+    const result = await streamJoke(topic, {
+      signal: controller.signal,
+      onDelta: (text) => {
+        received = true;
+        setView((v) => ({ ...v, joke: v.joke + text }));
+      },
+    });
 
-  function showDemoState(state: DemoState) {
-    clearDemoTimer();
-    switch (state) {
-      case "empty":
-        setView(INITIAL_VIEW);
-        break;
-      case "waiting":
-        setView({ status: "streaming", joke: "", errorMessage: "" });
-        break;
-      case "joke":
-        setView({ status: "completed", joke: DEMO.joke, errorMessage: "" });
-        break;
-      case "error":
-        setView({ status: "error", joke: DEMO.partialJoke, errorMessage: STRINGS.genericError });
-        break;
+    if (controllerRef.current === controller) controllerRef.current = null;
+
+    if (result === "completed") {
+      setView((v) => ({ ...v, status: "completed" }));
+    } else if (result === "aborted") {
+      // Stopped by the user: keep the partial text, no message.
+      setView((v) => ({ ...v, status: "stopped" }));
+    } else {
+      setView((v) => ({
+        ...v,
+        status: "error",
+        errorMessage: received ? STRINGS.interrupted : STRINGS.genericError,
+      }));
     }
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (isStreaming) {
-      stopDemo();
+      // Basic stop; hardened in Milestone 3.
+      controllerRef.current?.abort();
     } else {
-      startDemo();
+      void generate();
     }
   }
 
@@ -96,9 +86,7 @@ export default function JokeGenerator() {
         <ErrorMessage message={view.errorMessage} />
       )}
 
-      <JokeCard status={view.status} joke={view.joke} badge={DEMO.badge} />
-
-      <DemoPanel onSelect={showDemoState} />
+      <JokeCard status={view.status} joke={view.joke} />
     </div>
   );
 }

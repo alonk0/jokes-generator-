@@ -226,3 +226,15 @@ data: {}
 8. OpenAI – Responses API Streaming: https://developers.openai.com/api/docs/guides/streaming-responses
 9. OpenAI – GPT-5 Model: https://developers.openai.com/api/docs/models/gpt-5
 10. OpenAI – API Pricing: https://developers.openai.com/api/docs/pricing
+
+## החלטות מרכזיות (ADRs)
+
+### ADR-1: אין הגדרת `runtime` מפורשת ב-Route Handler
+**הקשר:** הארכיטקטורה מגדירה ש-`POST /api/joke` ירוץ ב-Node.js Runtime. בפרויקט מופעל `cacheComponents` (Next.js 16.4), ולפי התיעוד של הגרסה המותקנת אסור לייצא `runtime` (גם לא `"nodejs"`) כשהאפשרות הזו פעילה.
+**החלטה:** לא לייצא `runtime` מ-`app/api/joke/route.ts` ולהסתמך על Node.js, שהוא ברירת המחדל. מייצאים רק `maxDuration = 60`.
+**השלכות:** ה-Route רץ ב-Node.js כנדרש, בלי שינוי בהתנהגות. אם `cacheComponents` יבוטל בעתיד, אפשר להוסיף שוב `runtime = "nodejs"` מפורש.
+
+### ADR-2: הפרדת הנושא מההוראות באמצעות תגיות ו-`store: false`
+**הקשר:** הנושא מגיע מהמשתמש ועלול לכלול הוראות למודל (Prompt Injection). בנוסף, אין צורך לשמור תשובות אצל OpenAI.
+**החלטה:** ההוראות נשלחות בשדה `instructions` בלבד, והנושא נשלח בשדה `input` בתוך תגיות `<topic>...</topic>`, אחרי הסרת תגיות כאלה מתוך הנושא עצמו. ההוראות מורות להתייחס לתוכן התגיות כנושא ולא כפקודה. הבקשה נשלחת עם `store: false`.
+**השלכות:** בבדיקה, ניסיונות לבקש שיר באנגלית או תשובה באנגלית הניבו בדיחה בעברית. זו הגנה מיטבית ולא מוחלטת. תשובות לא נשמרות ב-OpenAI לשימוש חוזר דרך ה-API.
