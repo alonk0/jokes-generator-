@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Assistant, Heebo, Rubik } from "next/font/google";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import { STRINGS } from "@/lib/strings";
 import "./globals.css";
 
@@ -21,6 +22,8 @@ const assistant = Assistant({
 export const metadata: Metadata = {
   title: STRINGS.appName,
   description: STRINGS.subtitle,
+  icons: { apple: "/icons/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: STRINGS.appName, statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
@@ -34,7 +37,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       dir="rtl"
       className={`${rubik.variable} ${heebo.variable} ${assistant.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        {children}
+        <ServiceWorkerRegister />
+      </body>
     </html>
   );
 }

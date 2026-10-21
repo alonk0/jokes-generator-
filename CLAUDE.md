@@ -58,4 +58,6 @@
 ## פקודות הרצה
 > Claude ממלא זאת ברגע שהאפליקציה יכולה לרוץ (בדרך כלל בסיום Milestone 1), ומעדכן אם משהו משתנה.
 - **הרצה (dev):** `npm run dev` (ואז לפתוח http://localhost:3000)
+- **גרסת Production מקומית (לבדיקת PWA ו-Offline):** `npm run build` ואז `npm run start` (http://localhost:3000)
+- **יצירת אייקונים מחדש (אחרי שינוי ב-`assets/*.svg`):** `npm run icons`
 - **בדיקות (test):** `npm test`; בדיקת קוד: `npm run lint`; בנייה: `npm run build`
