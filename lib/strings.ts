@@ -1,0 +1,21 @@
+// All user-facing texts (see the text table in spec/DESIGN.md).
+export const STRINGS = {
+  appName: "מחולל בדיחות",
+  subtitle: "בדיחה חדשה בכל נושא שתרצו",
+  topicPlaceholder: "הכניסו נושא לבדיחה...",
+  topicLabel: "נושא לבדיחה",
+  clearTopic: "נקה נושא",
+  generate: "צור בדיחה",
+  stop: "עצור",
+  emptyState: "הבדיחה תופיע כאן אחרי הלחיצה על הכפתור",
+  loading: "יוצר בדיחה...",
+  copy: "העתק בדיחה",
+  copied: "הועתק!",
+  copyFailed: "לא הצלחנו להעתיק. אפשר לסמן את הטקסט ולהעתיק ידנית.",
+  offline: "אין חיבור לאינטרנט. בדקו את החיבור ונסו שוב.",
+  genericError: "מצטערים, משהו השתבש. נסו שוב בעוד רגע.",
+  interrupted: "הבדיחה נקטעה באמצע. אפשר לנסות שוב.",
+  rateLimited: "יצרת יותר מדי בדיחות בזמן קצר. אפשר לנסות שוב בעוד רגע.",
+  invalidTopic: "הנושא ארוך מדי או לא תקין. נסו נושא קצר יותר.",
+  footer: "הבדיחות נוצרות באמצעות בינה מלאכותית",
+} as const;

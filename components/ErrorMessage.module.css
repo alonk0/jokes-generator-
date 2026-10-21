@@ -1,0 +1,22 @@
+.box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--color-soft-pink);
+  border-radius: var(--radius-md);
+  color: var(--color-text-red);
+  font-weight: 600;
+  animation: fade-in 0.2s ease;
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}

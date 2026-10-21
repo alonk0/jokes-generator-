@@ -1,0 +1,37 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px dashed var(--color-muted-gray);
+  border-radius: var(--radius-md);
+  background: #f8f8f6;
+}
+
+.notice {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-muted-gray);
+  text-align: center;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.button {
+  padding: 6px 14px;
+  border: 1px solid var(--color-light-gray);
+  border-radius: 999px;
+  background: var(--color-white);
+  font-size: 14px;
+  color: var(--color-charcoal);
+}
+
+.button:hover {
+  border-color: var(--color-muted-gray);
+}
