@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node scripts/generate-icons.mjs",
+    "check:rate-limit": "node scripts/check-rate-limit.mjs"
   },
   "dependencies": {
     "next": "16.4.2",

@@ -243,3 +243,12 @@ data: {}
 **הקשר:** שמות קובצי ה-Build של Next.js כוללים Hash שאינו ידוע מראש, ואין כלי Build ל-Service Worker. בנוסף, הקבצים שנטענו בביקור הראשון נטענים לפני שה-Service Worker שולט בעמוד, ולכן אינם נשמרים מעצמם.
 **החלטה:** Service Worker כקובץ JavaScript רגיל ב-`public/sw.js`, הנרשם (ב-Production בלבד) בכתובת `/sw.js?v=<גרסת Build>`; הגרסה נקבעת ב-`next.config.ts` (`VERCEL_GIT_COMMIT_SHA` או חותמת זמן של ה-Build) ומשמשת כשם ה-Cache. אחרי הרישום, הדף שולח ל-Service Worker את רשימת הקבצים שכבר טען (לפי `performance`), והוא שומר אותם. ב-`next dev` כל Service Worker קיים מבוטל.
 **השלכות:** אין תלות בספרייה חיצונית (כמו Serwist); כל Build מקבל Cache חדש והישן נמחק; הממשק המלא (כולל גופנים) זמין Offline כבר אחרי ביקור מחובר אחד. אייקוני PNG נוצרים מ-SVG בסקריפט ידני (`npm run icons`, עם `sharp` כתלות פיתוח) ונשמרים ב-Git.
+
+### ADR-4: הגדרות Vercel ו-WAF שאינן נשמרות ב-Repository
+**הקשר:** הפריסה, משתנה הסביבה וכלל ה-Rate Limiting מוגדרים בלוח הבקרה של Vercel ולא נובעים מהקוד, ולכן צריך לתעד אותם כדי שאפשר יהיה לוודא ולשחזר אותם.
+**החלטה:**
+- פרויקט Vercel `jokes-generator` (צוות `alonko`, תוכנית Hobby), מחובר ל-`alonk0/jokes-generator-` ב-GitHub. Production Branch: `main`. כתובת: https://jokes-generator-sage-pi.vercel.app
+- `OPENAI_API_KEY` מוגדר לסביבת **Production בלבד** (לא Preview ולא Development).
+- כלל Firewall מסוג Rate Limit בשם `joke-rate-limit`: `Request Path equals /api/joke` **AND** `Method equals POST` ← `Fixed Window`, 60 שניות, 5 בקשות, מפתח `IP Address` ← `Too Many Requests (429)`. הכלל פורסם (Publish).
+- בדיקה: `npm run check:rate-limit -- <url>` שולח 6 בקשות לא תקינות (נושא של 101 תווים), כך שהשרת דוחה אותן ב-`400` בלי לפנות ל-OpenAI, והשישית נחסמת ב-`429` על ידי ה-WAF.
+**השלכות:** שינוי פרויקט, חשבון או שם ב-Vercel מחייב להגדיר מחדש את המשתנה ואת כלל ה-WAF ולהריץ את הבדיקה. שינוי ערך משתנה סביבה נכנס לתוקף רק בפריסה חדשה.
