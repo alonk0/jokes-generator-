@@ -7,9 +7,11 @@ import styles from "./JokeCard.module.css";
 type Props = {
   status: GenerationStatus;
   joke: string;
+  copied: boolean;
+  onCopy: () => void;
 };
 
-export default function JokeCard({ status, joke }: Props) {
+export default function JokeCard({ status, joke, copied, onCopy }: Props) {
   const isWaiting = status === "streaming" && joke === "";
   const isEmpty = !isWaiting && joke === "";
 
@@ -49,11 +51,11 @@ export default function JokeCard({ status, joke }: Props) {
         <>
           <p className={styles.joke}>{joke}</p>
           {status === "completed" && (
-            // Visual only for now; copying is wired in Milestone 3.
+            // Copying is offered only for a fully completed joke.
             <div className={styles.actions}>
-              <button type="button" className={styles.copy}>
+              <button type="button" className={styles.copy} onClick={onCopy}>
                 <CopyIcon />
-                {STRINGS.copy}
+                {copied ? STRINGS.copied : STRINGS.copy}
               </button>
             </div>
           )}

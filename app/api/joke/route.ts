@@ -68,6 +68,8 @@ export async function POST(request: Request) {
       { signal },
     );
   } catch (error) {
+    // The client left while waiting: a normal cancellation, not a failure.
+    if (request.signal.aborted) return jsonError(499, "CANCELLED");
     // Log only the status / error type, never the topic or provider message body.
     const status = error instanceof OpenAI.APIError ? error.status : undefined;
     console.error("[api/joke] OpenAI request failed", { status, type: (error as Error)?.name });
@@ -75,21 +77,22 @@ export async function POST(request: Request) {
   }
 
   const encoder = new TextEncoder();
+  // Set when the client disconnects; the stream controller must not be touched after that.
+  let cancelled = false;
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       let closed = false;
       const send = (event: JokeEventName, data: object) => {
-        if (!closed) controller.enqueue(encoder.encode(formatSseEvent(event, data)));
+        if (!closed && !cancelled) controller.enqueue(encoder.encode(formatSseEvent(event, data)));
       };
       const finish = () => {
-        if (!closed) {
-          closed = true;
-          controller.close();
-        }
+        if (!closed && !cancelled) controller.close();
+        closed = true;
       };
 
       try {
         for await (const event of upstream) {
+          if (cancelled) return finish();
           if (event.type === "response.output_text.delta") {
             send("delta", { text: event.delta });
           } else if (event.type === "response.completed") {
@@ -106,19 +109,16 @@ export async function POST(request: Request) {
         // Upstream ended without a final event.
         send("error", { code: "UPSTREAM_ERROR" });
       } catch (error) {
-        if (!request.signal.aborted) {
+        if (!cancelled && !request.signal.aborted) {
           console.error("[api/joke] stream interrupted", { type: (error as Error)?.name });
-        }
-        try {
           send("error", { code: "UPSTREAM_ERROR" });
-        } catch {
-          // Client already gone.
         }
       }
       finish();
     },
     cancel() {
       // The client disconnected: stop generating at OpenAI as far as possible.
+      cancelled = true;
       upstream.controller.abort();
     },
   });
