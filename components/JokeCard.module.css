@@ -17,12 +17,6 @@
   text-align: center;
 }
 
-.clown {
-  width: 180px;
-  height: 180px;
-  object-fit: contain;
-}
-
 .emptyText {
   max-width: 260px;
   color: var(--color-muted-gray);

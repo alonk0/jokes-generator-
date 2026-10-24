@@ -1,4 +1,3 @@
-import Image from "next/image";
 import type { GenerationStatus } from "@/lib/generation";
 import { STRINGS } from "@/lib/strings";
 import { CopyIcon } from "./icons";
@@ -18,14 +17,6 @@ export default function JokeCard({ status, joke, copied, onCopy }: Props) {
   if (isEmpty) {
     return (
       <section className={`${styles.card} ${styles.empty}`}>
-        <Image
-          src="/illustrations/clown.webp"
-          alt=""
-          width={180}
-          height={180}
-          className={styles.clown}
-          priority
-        />
         <p className={styles.emptyText}>{STRINGS.emptyState}</p>
       </section>
     );
